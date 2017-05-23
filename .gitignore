@@ -1,0 +1,10 @@
+*~
+*.pyc
+*.swp
+.DS_Store
+
+env
+env3
+
+.coverage
+htmlcov
