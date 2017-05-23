@@ -1,4 +1,4 @@
-django-test-mixins
-==================
+django-client-test-mixins
+=========================
 
-A set of mixins to automatically generate tests generic Django views and DRF Viewsets.
+A set of mixins to automatically generate tests for generic Django views and DRF Viewsets.
