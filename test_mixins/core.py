@@ -1,3 +1,5 @@
+from six import with_metaclass
+
 import inspect
 import json
 
@@ -19,7 +21,7 @@ class TestMixinMeta(type):
             for member_name, member in inspect.getmembers(base):
 
                 # get the functions starting with _test_
-                if inspect.ismethod(member) and member_name.startswith('_test_'):
+                if member_name.startswith('_test_'):
                     tests.append(member_name)
 
                 # get the languages
@@ -33,7 +35,8 @@ class TestMixinMeta(type):
         for test in tests:
             for language in languages:
                 for username, password in users:
-                    attrs[test[1:] + '_' + language + '_' + username] = cls.generate_test(test, language, username, password)
+                    attrs[test[1:] + '_' + language + '_' + username] = \
+                        cls.generate_test(test, language, username, password)
 
         return super(TestMixinMeta, cls).__new__(cls, name, bases, attrs)
 
@@ -50,9 +53,8 @@ class TestMixinMeta(type):
         return fn
 
 
-class TestMixin(object):
-
-    __metaclass__ = TestMixinMeta
+class TestMixin(with_metaclass(TestMixinMeta, object)):
+    pass
 
 
 class TestSingleObjectMixin(TestMixin):
