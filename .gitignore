@@ -8,3 +8,6 @@ env3
 
 .coverage
 htmlcov
+
+dist
+django_test_generator.egg-info
