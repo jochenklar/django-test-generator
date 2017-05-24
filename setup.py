@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.1.2'
+version = 'v0.1.2'
 
 setup(
     name='django-test-generator',
