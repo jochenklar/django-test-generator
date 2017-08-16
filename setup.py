@@ -1,19 +1,39 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
-version = '0.1.0'
+from test_generator import (
+    __title__ as title,
+    __version__ as version,
+    __author__ as author,
+    __license__ as license
+)
+
+description = 'A set of mixins to automatically generate test for generic Django views and DRF Viewsets.'
+email = 'jklar@aip.de'
+url = 'https://github.com/aipescience/django-test-generator'
+
+requirements = [
+    'Django>=1.8'
+]
+
+keywords = [
+    'testing',
+    'django'
+]
+
+classifiers = []
 
 setup(
-    name='django-test-generator',
+    name=title,
     version=version,
-    description='A set of mixins to automatically generate test for generic Django views and DRF Viewsets.',
-    url='https://github.com/aipescience/django-test-generator',
-    author='Jochen Klar',
-    author_email='jklar@aip.de',
-    maintainer=u'AIP E-Science',
-    maintainer_email=u'escience@aip.de',
-    license=u'Apache License (2.0)',
-    packages=['test_generator'],
-    download_url='https://github.com/aipescience/django-test-generator/archive/%s.tar.gz' % version,
-    keywords=['testing', 'django'],
-    classifiers=[],
+    description=description,
+    url=url,
+    author=author,
+    author_email=email,
+    maintainer=author,
+    maintainer_email=email,
+    license=license,
+    packages=find_packages(),
+    install_requires=requirements,
+    keywords=keywords,
+    classifiers=classifiers
 )

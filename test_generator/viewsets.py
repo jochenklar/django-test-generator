@@ -1,3 +1,5 @@
+import json
+
 from django.core.urlresolvers import reverse
 
 from django.utils.http import urlencode
@@ -70,7 +72,7 @@ class TestCreateViewsetMixin(TestSingleObjectMixin):
             if query_params:
                 url += '?' + urlencode(query_params)
 
-            data = self.get_instance_as_dict(instance)
+            data = self.prepare_create_data(self.get_instance_as_dict(instance))
 
             response = self.client.post(url, data)
 
@@ -90,6 +92,9 @@ class TestCreateViewsetMixin(TestSingleObjectMixin):
     def prepare_create_instance(self, instance=None):
         return instance
 
+    def prepare_create_data(self, data):
+        return data
+
     def get_create_viewset_query_params(self):
         return {}
 
@@ -107,9 +112,9 @@ class TestUpdateViewsetMixin(TestSingleObjectMixin):
             if query_params:
                 url += '?' + urlencode(query_params)
 
-            data = self.get_instance_as_json(instance)
+            data = self.prepare_update_data(self.get_instance_as_dict(instance))
 
-            response = self.client.put(url, data, content_type="application/json")
+            response = self.client.put(url, json.dumps(data), content_type="application/json")
 
             try:
                 self.assertEqual(response.status_code, self.status_map['update_viewset'][username])
@@ -126,6 +131,9 @@ class TestUpdateViewsetMixin(TestSingleObjectMixin):
 
     def prepare_update_instance(self, instance):
         return instance
+
+    def prepare_update_data(self, data):
+        return data
 
     def get_update_viewset_query_params(self, instance):
         return {}

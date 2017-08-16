@@ -1,7 +1,6 @@
 from six import with_metaclass
 
 import inspect
-import json
 
 from datetime import datetime, timedelta
 from itertools import chain
@@ -67,6 +66,7 @@ class TestSingleObjectMixin(TestMixin):
         for field in chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
             if not getattr(field, 'editable', False):
                 continue
+
             if isinstance(field, ManyToManyField):
                 # If the object doesn't have a primary key yet, just use an empty
                 # list for its m2m fields. Calling f.value_from_object will raise
@@ -80,6 +80,10 @@ class TestSingleObjectMixin(TestMixin):
                         data[field.name] = [item.pk for item in qs]
                     else:
                         data[field.name] = list(qs.values_list('pk', flat=True))
+
+            elif field.__class__.__name__ == 'JSONField':
+                data[field.name] = getattr(instance, field.name)
+
             else:
                 data[field.name] = field.value_from_object(instance)
 
@@ -104,9 +108,6 @@ class TestSingleObjectMixin(TestMixin):
                     model_data[key] = model_value
 
         return model_data
-
-    def get_instance_as_json(self, instance=None):
-        return json.dumps(self.get_instance_as_dict(instance))
 
 
 class TestModelStringMixin(TestSingleObjectMixin):
