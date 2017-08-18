@@ -53,7 +53,9 @@ class TestMixinMeta(type):
 
 
 class TestMixin(with_metaclass(TestMixinMeta, object)):
-    pass
+
+    # append explicit failure message to the end of the normal failure message
+    longMessage = True
 
 
 class TestSingleObjectMixin(TestMixin):

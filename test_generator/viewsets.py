@@ -14,17 +14,12 @@ class TestListViewsetMixin(TestMixin):
         url = reverse(self.url_names['viewset'] + '-list')
         response = self.client.get(url, self.get_list_viewset_query_params())
 
-        try:
-            self.assertEqual(response.status_code, self.status_map['list_viewset'][username])
-        except AssertionError:
-            print(
-                ('test', 'test_list_viewset'),
-                ('username', username),
-                ('url',  url),
-                ('status_code',  response.status_code),
-                ('json',  response.json())
-            )
-            raise
+        self.assertEqual(response.status_code, self.status_map['list_viewset'][username], msg=(
+            ('username', username),
+            ('url', url),
+            ('status_code', response.status_code),
+            ('content', response.content)
+        ))
 
     def get_list_viewset_query_params(self):
         return {}
@@ -40,17 +35,12 @@ class TestRetrieveViewsetMixin(TestMixin):
             url = reverse(self.url_names['viewset'] + '-detail', args=[instance.pk])
             response = self.client.get(url, self.get_retrieve_viewset_query_params(instance))
 
-            try:
-                self.assertEqual(response.status_code, self.status_map['retrieve_viewset'][username])
-            except AssertionError:
-                print(
-                    ('test', 'test_retrieve_viewset'),
-                    ('username', username),
-                    ('url',  url),
-                    ('status_code',  response.status_code),
-                    ('json',  response.json())
-                )
-                raise
+            self.assertEqual(response.status_code, self.status_map['retrieve_viewset'][username], msg=(
+                ('username', username),
+                ('url', url),
+                ('status_code', response.status_code),
+                ('content', response.content)
+            ))
 
     def prepare_retrieve_instance(self, instance):
         return instance
@@ -76,18 +66,13 @@ class TestCreateViewsetMixin(TestSingleObjectMixin):
 
             response = self.client.post(url, data)
 
-            try:
-                self.assertEqual(response.status_code, self.status_map['create_viewset'][username])
-            except AssertionError:
-                print(
-                    ('test', 'test_create_viewset'),
-                    ('username', username),
-                    ('url',  url),
-                    ('data',  data),
-                    ('status_code',  response.status_code),
-                    ('json',  response.json())
-                )
-                raise
+            self.assertEqual(response.status_code, self.status_map['create_viewset'][username], msg=(
+                ('username', username),
+                ('url', url),
+                ('data', data),
+                ('status_code', response.status_code),
+                ('content', response.content)
+            ))
 
     def prepare_create_instance(self, instance=None):
         return instance
@@ -116,18 +101,13 @@ class TestUpdateViewsetMixin(TestSingleObjectMixin):
 
             response = self.client.put(url, json.dumps(data), content_type="application/json")
 
-            try:
-                self.assertEqual(response.status_code, self.status_map['update_viewset'][username])
-            except AssertionError:
-                print(
-                    ('test', 'test_update_viewset'),
-                    ('username', username),
-                    ('url',  url),
-                    ('data',  data),
-                    ('status_code',  response.status_code),
-                    ('json',  response.json())
-                )
-                raise
+            self.assertEqual(response.status_code, self.status_map['update_viewset'][username], msg=(
+                ('username', username),
+                ('url', url),
+                ('data', data),
+                ('status_code', response.status_code),
+                ('content', response.content)
+            ))
 
     def prepare_update_instance(self, instance):
         return instance
@@ -156,20 +136,16 @@ class TestDeleteViewsetMixin(TestSingleObjectMixin):
 
             response = self.client.delete(url)
 
-            try:
-                self.assertEqual(response.status_code, self.status_map['delete_viewset'][username])
+            self.assertEqual(response.status_code, self.status_map['delete_viewset'][username], msg=(
+                ('username', username),
+                ('url', url),
+                ('status_code', response.status_code),
+                ('content', response.content)
+            ))
 
-                # save the instance again so we can delete it again later
-                if self.restore_instance:
-                    instance.save(update_fields=None)
-            except AssertionError:
-                print(
-                    ('test', 'test_delete_viewset'),
-                    ('username', username),
-                    ('url',  url),
-                    ('status_code',  response.status_code)
-                )
-                raise
+            # save the instance again so we can delete it again later
+            if self.restore_instance:
+                instance.save(update_fields=None)
 
     def prepare_delete_instance(self, instance):
         return instance
