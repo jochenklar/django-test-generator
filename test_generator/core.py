@@ -5,45 +5,46 @@ import inspect
 from datetime import datetime, timedelta
 from itertools import chain
 
-from django.utils import translation
-
 
 class TestMixinMeta(type):
 
     def __new__(cls, name, bases, attrs):
         # loop over base classes to get the tests and users array
         tests = []
-        languages = []
         users = []
+
         for base in bases:
-            # loop over members of the base class:
+            # loop over members of the base classes:
             for member_name, member in inspect.getmembers(base):
 
                 # get the functions starting with _test_
                 if member_name.startswith('_test_'):
                     tests.append(member_name)
 
-                # get the languages
-                if member_name.startswith('languages'):
-                    languages += member
-
                 # get the users
                 if member_name.startswith('users'):
                     users += member
 
+        # loop over attributes of this class
+        for attr in attrs:
+            # get the functions starting with _test_
+            if attr.startswith('_test_'):
+                tests.append(attr)
+
+            # get the users
+            if attr.startswith('users'):
+                users += attr
+
         for test in tests:
-            for language in languages:
-                for username, password in users:
-                    attrs[test[1:] + '_' + language + '_' + username] = \
-                        cls.generate_test(test, language, username, password)
+            for username, password in users:
+                attrs['test_%s_for_%s' % (test[6:], username)] = \
+                    cls.generate_test(test, username, password)
 
         return super(TestMixinMeta, cls).__new__(cls, name, bases, attrs)
 
     @classmethod
-    def generate_test(cls, test, language, username, password):
+    def generate_test(cls, test, username, password):
         def fn(self):
-            translation.activate(language)
-
             if password:
                 self.client.login(username=username, password=password)
 
