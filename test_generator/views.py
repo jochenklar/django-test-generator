@@ -17,13 +17,12 @@ class TestViewMixin(TestMixin):
             ('content', response.content)
         ))
 
-    def assert_detail_view(self, username, id, url_kwargs={}):
+    def assert_detail_view(self, username, url_kwargs={}):
 
-        url_kwargs.update({'id': id})
-        url = reverse(self.url_names['retrieve_view'], kwargs=url_kwargs)
+        url = reverse(self.url_names['detail_view'], kwargs=url_kwargs)
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, self.status_map['retrieve_view'][username], msg=(
+        self.assertEqual(response.status_code, self.status_map['detail_view'][username], msg=(
             ('username', username),
             ('url', url),
             ('status_code', response.status_code),
@@ -42,7 +41,7 @@ class TestViewMixin(TestMixin):
             ('content', response.content)
         ))
 
-    def assert_create_view_post(self, username, data, url_kwargs={}):
+    def assert_create_view_post(self, username, url_kwargs={}, data={}):
 
         url = reverse(self.url_names['create_view'], kwargs=url_kwargs)
         response = self.client.post(url, data)
@@ -55,9 +54,8 @@ class TestViewMixin(TestMixin):
             ('content', response.content)
         ))
 
-    def assert_update_view_get(self, username, id, url_kwargs={}):
+    def assert_update_view_get(self, username, url_kwargs={}):
 
-        url_kwargs.update({'id': id})
         url = reverse(self.url_names['update_view'], kwargs=url_kwargs)
         response = self.client.get(url)
 
@@ -68,9 +66,8 @@ class TestViewMixin(TestMixin):
             ('content', response.content)
         ))
 
-    def assert_update_view_post(self, username, id, data, url_kwargs={}):
+    def assert_update_view_post(self, username, url_kwargs={}, data={}):
 
-        url_kwargs.update({'id': id})
         url = reverse(self.url_names['update_view'], kwargs=url_kwargs)
         response = self.client.post(url, data)
 
@@ -82,9 +79,8 @@ class TestViewMixin(TestMixin):
             ('content', response.content)
         ))
 
-    def assert_delete_view_get(self, username, id, url_kwargs={}):
+    def assert_delete_view_get(self, username, url_kwargs={}):
 
-        url_kwargs.update({'id': id})
         url = reverse(self.url_names['delete_view'], kwargs=url_kwargs)
         response = self.client.get(url)
 
@@ -96,9 +92,8 @@ class TestViewMixin(TestMixin):
         ))
 
 
-    def assert_delete_view_post(self, username, id, url_kwargs={}):
+    def assert_delete_view_post(self, username, url_kwargs={}):
 
-        url_kwargs.update({'id': id})
         url = reverse(self.url_names['delete_view'], kwargs=url_kwargs)
         response = self.client.post(url)
 
@@ -116,11 +111,13 @@ class TestListViewMixin(TestViewMixin):
         self.assert_list_view(username)
 
 
-class TestRetrieveViewMixin(TestViewMixin):
+class TestDetailViewMixin(TestViewMixin):
 
     def _test_retrieve_view(self, username):
         for instance in self.instances:
-            self.assert_detail_view(username, instance.pk)
+            self.assert_detail_view(username, {
+                'pk': instance.pk
+            })
 
 
 class TestCreateViewMixin(TestSingleObjectMixin, TestViewMixin):
@@ -131,35 +128,43 @@ class TestCreateViewMixin(TestSingleObjectMixin, TestViewMixin):
     def _test_create_view_post(self, username):
         for instance in self.instances:
             data = self.get_instance_as_dict(instance)
-            self.assert_create_view_get(username, data)
+            self.assert_create_view_post(username, {}, data)
 
 
 class TestUpdateViewMixin(TestSingleObjectMixin, TestViewMixin):
 
     def _test_update_view_get(self, username):
         for instance in self.instances:
-            self.assert_update_view_get(username, instance.pk)
+            self.assert_update_view_get(username, {
+                'pk': instance.pk
+            })
 
     def _test_update_view_post(self, username):
         for instance in self.instances:
             data = self.get_instance_as_dict(instance)
-            self.assert_update_view_post(username, instance.pk, data)
+            self.assert_update_view_post(username, {
+                'pk': instance.pk
+            }, data)
 
 
 class TestDeleteViewMixin(TestSingleObjectMixin, TestViewMixin):
 
     def _test_delete_view_get(self, username):
         for instance in self.instances:
-            self.assert_delete_view_get(username, instance.pk)
-
+            self.assert_delete_view_get(username, {
+                'pk': instance.pk
+            })
 
     def _test_delete_view_post(self, username):
         for instance in self.instances:
-            self.assert_delete_view_post(username, instance.pk)
+            self.assert_delete_view_post(username, {
+                'pk': instance.pk
+            })
+            instance.save(update_fields=None)
 
 
 class TestModelViewMixin(TestListViewMixin,
-                         TestRetrieveViewMixin,
+                         TestDetailViewMixin,
                          TestCreateViewMixin,
                          TestUpdateViewMixin,
                          TestDeleteViewMixin):
