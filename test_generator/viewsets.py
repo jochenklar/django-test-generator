@@ -9,79 +9,56 @@ from .core import TestMixin, TestSingleObjectMixin
 
 class TestViewsetMixin(TestMixin):
 
-    def assert_list_viewset(self, username, list_route='list', query_params={}):
+    def assert_viewset(self, key, method, route, username, kwargs={}, query_params={}, data={}):
 
-        url = reverse(self.url_names['viewset'] + '-' + list_route)
-        response = self.client.get(url, query_params)
+        url_name = self.url_names['viewset'] + '-' + route
+        status_map = self.status_map[key]
 
-        self.assertEqual(response.status_code, self.status_map[list_route + '_viewset'][username], msg=(
+        url = reverse(url_name, kwargs=kwargs)
+
+        if method == 'get':
+            response = self.client.get(url, query_params)
+        else:
+            if query_params:
+                url += '?' + urlencode(query_params)
+
+            if method == 'post':
+                response = self.client.post(url, data)
+            elif method == 'put':
+                response = self.client.put(url, json.dumps(data), content_type='application/json')
+            elif method == 'delete':
+                response = self.client.delete(url)
+            else:
+                raise RuntimeError('method \'%s\' not supported' % method)
+
+        try:
+            content = response.content
+        except AttributeError:
+            content = None
+
+        self.assertEqual(response.status_code, status_map[username], msg=(
             ('username', username),
             ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
-
-    def assert_detail_viewset(self, username, pk, detail_route='detail', query_params={}):
-
-        url = reverse(self.url_names['viewset'] + '-' + detail_route, args=[pk])
-        response = self.client.get(url, query_params)
-
-        self.assertEqual(response.status_code, self.status_map[detail_route + '_viewset'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
-
-    def assert_create_viewset(self, username, data, query_params={}):
-
-        url = reverse(self.url_names['viewset'] + '-list')
-
-        if query_params:
-            url += '?' + urlencode(query_params)
-
-        response = self.client.post(url, data)
-
-        self.assertEqual(response.status_code, self.status_map['create_viewset'][username], msg=(
-            ('username', username),
-            ('url', url),
+            ('method', method),
             ('data', data),
             ('status_code', response.status_code),
-            ('content', response.content)
+            ('content', content)
         ))
 
-    def assert_update_viewset(self, username, pk, data, query_params={}):
+    def assert_list_viewset(self, username, kwargs={}, query_params={}):
+        self.assert_viewset('list_viewset', 'get', 'list', username, kwargs=kwargs, query_params=query_params)
 
-        url = reverse(self.url_names['viewset'] + '-detail', args=[pk])
+    def assert_detail_viewset(self, username, kwargs={}, query_params={}):
+        self.assert_viewset('detail_viewset', 'get', 'detail', username, kwargs=kwargs, query_params=query_params)
 
-        if query_params:
-            url += '?' + urlencode(query_params)
+    def assert_create_viewset(self, username, kwargs={}, query_params={}, data={}):
+        self.assert_viewset('create_viewset', 'post', 'list', username, kwargs=kwargs, query_params=query_params, data=data)
 
-        response = self.client.put(url, json.dumps(data), content_type="application/json")
+    def assert_update_viewset(self, username, kwargs={}, query_params={}, data={}):
+        self.assert_viewset('update_viewset', 'put', 'detail', username, kwargs=kwargs, query_params=query_params, data=data)
 
-        self.assertEqual(response.status_code, self.status_map['update_viewset'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('data', data),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
-
-    def assert_delete_viewset(self, username, pk, query_params={}):
-        url = reverse(self.url_names['viewset'] + '-detail', args=[pk])
-
-        if query_params:
-            url += '?' + urlencode(query_params)
-
-        response = self.client.delete(url)
-
-        self.assertEqual(response.status_code, self.status_map['delete_viewset'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
-
+    def assert_delete_viewset(self, username, kwargs={}, query_params={}):
+        self.assert_viewset('delete_viewset', 'delete', 'detail', username, kwargs=kwargs, query_params=query_params)
 
 class TestListViewsetMixin(TestViewsetMixin):
 
@@ -93,28 +70,29 @@ class TestCreateViewsetMixin(TestSingleObjectMixin, TestViewsetMixin):
 
     def _test_create_viewset(self, username):
         for instance in self.instances:
-            self.assert_create_viewset(username, self.get_instance_as_dict(instance))
+            self.assert_create_viewset(username, data=self.get_instance_as_dict(instance))
 
 
 class TestDetailViewsetMixin(TestViewsetMixin):
 
     def _test_detail_viewset(self, username):
         for instance in self.instances:
-            self.assert_detail_viewset(username, instance.pk)
+            self.assert_detail_viewset(username, kwargs={'pk': instance.pk})
 
 
 class TestUpdateViewsetMixin(TestSingleObjectMixin, TestViewsetMixin):
 
     def _test_update_viewset(self, username):
         for instance in self.instances:
-            self.assert_update_viewset(username, instance.pk, self.get_instance_as_dict(instance))
+            data = self.get_instance_as_dict(instance)
+            self.assert_update_viewset(username, kwargs={'pk': instance.pk}, data=data)
 
 
 class TestDeleteViewsetMixin(TestSingleObjectMixin, TestViewsetMixin):
 
     def _test_delete_viewset(self, username):
         for instance in self.instances:
-            self.assert_delete_viewset(username, instance.pk)
+            self.assert_delete_viewset(username, kwargs={'pk': instance.pk})
             instance.save(update_fields=None)
 
 

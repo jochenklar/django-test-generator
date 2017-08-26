@@ -25,15 +25,16 @@ class TestMixinMeta(type):
                 if member_name.startswith('users'):
                     users += member
 
-        # loop over attributes of this class
+        # get tests from this class
         for attr in attrs:
             # get the functions starting with _test_
             if attr.startswith('_test_'):
                 tests.append(attr)
 
-            # get the users
-            if attr.startswith('users'):
-                users += attr
+
+        # get the users from this class
+        if 'users' in attrs:
+            users += attrs['users']
 
         for test in tests:
             for username, password in users:
