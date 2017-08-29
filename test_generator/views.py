@@ -1,108 +1,62 @@
 from django.core.urlresolvers import reverse
+from django.utils.http import urlencode
 
 from .core import TestMixin, TestSingleObjectMixin
 
 
 class TestViewMixin(TestMixin):
 
-    def assert_list_view(self, username, kwargs={}):
+    def assert_view(self, key, method, url_name, username, kwargs={}, query_params={}, data={}):
 
-        url = reverse(self.url_names['list_view'], kwargs=kwargs)
-        response = self.client.get(url)
+        url = reverse(self.url_names[url_name], kwargs=kwargs)
 
-        self.assertEqual(response.status_code, self.status_map['list_view'][username], msg=(
+        if method == 'get':
+            response = self.client.get(url, query_params)
+        elif method == 'post':
+            if query_params:
+                url += '?' + urlencode(query_params)
+
+            response = self.client.post(url, data)
+        else:
+            raise RuntimeError('method \'%s\' not supported' % method)
+
+        try:
+            content = response.content
+        except AttributeError:
+            content = None
+
+        self.assertEqual(response.status_code, self.status_map[key][username], msg=(
             ('username', username),
             ('url', url),
+            ('method', method),
+            ('data', data),
             ('status_code', response.status_code),
-            ('content', response.content)
+            ('content', content)
         ))
+
+    def assert_list_view(self, username, kwargs={}):
+        self.assert_view('list_view', 'get', 'list_view', username, kwargs=kwargs)
 
     def assert_detail_view(self, username, kwargs={}):
-
-        url = reverse(self.url_names['detail_view'], kwargs=kwargs)
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, self.status_map['detail_view'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('detail_view', 'get', 'detail_view', username, kwargs=kwargs)
 
     def assert_create_view_get(self, username, kwargs={}):
-
-        url = reverse(self.url_names['create_view'], kwargs=kwargs)
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, self.status_map['create_view_get'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('create_view_get', 'get', 'create_view', username, kwargs=kwargs)
 
     def assert_create_view_post(self, username, kwargs={}, data={}):
-
-        url = reverse(self.url_names['create_view'], kwargs=kwargs)
-        response = self.client.post(url, data)
-
-        self.assertEqual(response.status_code, self.status_map['create_view_post'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('data', data),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('create_view_post', 'post', 'create_view', username, kwargs=kwargs, data=data)
 
     def assert_update_view_get(self, username, kwargs={}):
-
-        url = reverse(self.url_names['update_view'], kwargs=kwargs)
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, self.status_map['update_view_get'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('update_view_get', 'get', 'update_view', username, kwargs=kwargs)
 
     def assert_update_view_post(self, username, kwargs={}, data={}):
-
-        url = reverse(self.url_names['update_view'], kwargs=kwargs)
-        response = self.client.post(url, data)
-
-        self.assertEqual(response.status_code, self.status_map['update_view_post'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('data', data),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('update_view_post', 'post', 'update_view', username, kwargs=kwargs, data=data)
 
     def assert_delete_view_get(self, username, kwargs={}):
-
-        url = reverse(self.url_names['delete_view'], kwargs=kwargs)
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, self.status_map['delete_view_get'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
-
+        self.assert_view('delete_view_get', 'get', 'delete_view', username, kwargs=kwargs)
 
     def assert_delete_view_post(self, username, kwargs={}):
-
-        url = reverse(self.url_names['delete_view'], kwargs=kwargs)
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, self.status_map['delete_view_post'][username], msg=(
-            ('username', username),
-            ('url', url),
-            ('status_code', response.status_code),
-            ('content', response.content)
-        ))
+        self.assert_view('delete_view_post', 'post', 'delete_view', username, kwargs=kwargs)
 
 
 class TestListViewMixin(TestViewMixin):
