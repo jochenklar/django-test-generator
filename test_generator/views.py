@@ -12,13 +12,18 @@ class TestViewMixin(TestMixin):
 
         if method == 'get':
             response = self.client.get(url, query_params)
-        elif method == 'post':
+        else:
             if query_params:
                 url += '?' + urlencode(query_params)
 
-            response = self.client.post(url, data)
-        else:
-            raise RuntimeError('method \'%s\' not supported' % method)
+            if method == 'post':
+                response = self.client.post(url, data)
+            elif method == 'put':
+                response = self.client.put(url, data)
+            elif method == 'delete':
+                response = self.client.delete(url)
+            else:
+                raise RuntimeError('method \'%s\' not supported' % method)
 
         try:
             content = response.content
