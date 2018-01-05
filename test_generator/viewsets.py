@@ -1,5 +1,7 @@
 import json
 
+from collections import OrderedDict
+
 from django.core.urlresolvers import reverse
 
 from django.utils.http import urlencode
@@ -32,11 +34,13 @@ class TestViewsetMixin(TestMixin):
                 raise RuntimeError('method \'%s\' not supported' % method)
 
         try:
+            content = response.json()
+        except ValueError:
             content = response.content
         except AttributeError:
             content = None
 
-        self.assertEqual(response.status_code, status_map[username], msg=(
+        msg = OrderedDict((
             ('username', username),
             ('url', url),
             ('method', method),
@@ -45,20 +49,24 @@ class TestViewsetMixin(TestMixin):
             ('content', content)
         ))
 
+        self.assertEqual(response.status_code, status_map[username], msg=msg)
+        return msg
+
     def assert_list_viewset(self, username, kwargs={}, query_params={}):
-        self.assert_viewset('list_viewset', 'get', 'list', username, kwargs=kwargs, query_params=query_params)
+        return self.assert_viewset('list_viewset', 'get', 'list', username, kwargs=kwargs, query_params=query_params)
 
     def assert_detail_viewset(self, username, kwargs={}, query_params={}):
-        self.assert_viewset('detail_viewset', 'get', 'detail', username, kwargs=kwargs, query_params=query_params)
+        return self.assert_viewset('detail_viewset', 'get', 'detail', username, kwargs=kwargs, query_params=query_params)
 
     def assert_create_viewset(self, username, kwargs={}, query_params={}, data={}):
-        self.assert_viewset('create_viewset', 'post', 'list', username, kwargs=kwargs, query_params=query_params, data=data)
+        return self.assert_viewset('create_viewset', 'post', 'list', username, kwargs=kwargs, query_params=query_params, data=data)
 
     def assert_update_viewset(self, username, kwargs={}, query_params={}, data={}):
-        self.assert_viewset('update_viewset', 'put', 'detail', username, kwargs=kwargs, query_params=query_params, data=data)
+        return self.assert_viewset('update_viewset', 'put', 'detail', username, kwargs=kwargs, query_params=query_params, data=data)
 
     def assert_delete_viewset(self, username, kwargs={}, query_params={}):
-        self.assert_viewset('delete_viewset', 'delete', 'detail', username, kwargs=kwargs, query_params=query_params)
+        return self.assert_viewset('delete_viewset', 'delete', 'detail', username, kwargs=kwargs, query_params=query_params)
+
 
 class TestListViewsetMixin(TestViewsetMixin):
 

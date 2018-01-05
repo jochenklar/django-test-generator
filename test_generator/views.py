@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.core.urlresolvers import reverse
 from django.utils.http import urlencode
 
@@ -30,7 +32,7 @@ class TestViewMixin(TestMixin):
         except AttributeError:
             content = None
 
-        self.assertEqual(response.status_code, self.status_map[key][username], msg=(
+        msg = OrderedDict((
             ('username', username),
             ('url', url),
             ('method', method),
@@ -39,29 +41,32 @@ class TestViewMixin(TestMixin):
             ('content', content)
         ))
 
+        self.assertEqual(response.status_code, self.status_map[key][username], msg=msg)
+        return msg
+
     def assert_list_view(self, username, kwargs={}):
-        self.assert_view('list_view', 'get', 'list_view', username, kwargs=kwargs)
+        return self.assert_view('list_view', 'get', 'list_view', username, kwargs=kwargs)
 
     def assert_detail_view(self, username, kwargs={}):
-        self.assert_view('detail_view', 'get', 'detail_view', username, kwargs=kwargs)
+        return self.assert_view('detail_view', 'get', 'detail_view', username, kwargs=kwargs)
 
     def assert_create_view_get(self, username, kwargs={}):
-        self.assert_view('create_view_get', 'get', 'create_view', username, kwargs=kwargs)
+        return self.assert_view('create_view_get', 'get', 'create_view', username, kwargs=kwargs)
 
     def assert_create_view_post(self, username, kwargs={}, data={}):
-        self.assert_view('create_view_post', 'post', 'create_view', username, kwargs=kwargs, data=data)
+        return self.assert_view('create_view_post', 'post', 'create_view', username, kwargs=kwargs, data=data)
 
     def assert_update_view_get(self, username, kwargs={}):
-        self.assert_view('update_view_get', 'get', 'update_view', username, kwargs=kwargs)
+        return self.assert_view('update_view_get', 'get', 'update_view', username, kwargs=kwargs)
 
     def assert_update_view_post(self, username, kwargs={}, data={}):
-        self.assert_view('update_view_post', 'post', 'update_view', username, kwargs=kwargs, data=data)
+        return self.assert_view('update_view_post', 'post', 'update_view', username, kwargs=kwargs, data=data)
 
     def assert_delete_view_get(self, username, kwargs={}):
-        self.assert_view('delete_view_get', 'get', 'delete_view', username, kwargs=kwargs)
+        return self.assert_view('delete_view_get', 'get', 'delete_view', username, kwargs=kwargs)
 
     def assert_delete_view_post(self, username, kwargs={}):
-        self.assert_view('delete_view_post', 'post', 'delete_view', username, kwargs=kwargs)
+        return self.assert_view('delete_view_post', 'post', 'delete_view', username, kwargs=kwargs)
 
 
 class TestListViewMixin(TestViewMixin):
