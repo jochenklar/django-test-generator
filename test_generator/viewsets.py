@@ -33,11 +33,15 @@ class TestViewsetMixin(TestMixin):
             else:
                 raise RuntimeError('method \'%s\' not supported' % method)
 
-        try:
-            content = response.json()
-        except ValueError:
+        content_type = response.get('Content-Type')
+
+        if content_type == 'text/html':
             content = response.content
-        except AttributeError:
+        elif content_type == 'application/json':
+            content = response.json()
+        elif content_type == 'application/zip':
+            content = '<zip>'
+        else:
             content = None
 
         msg = OrderedDict((
@@ -46,6 +50,7 @@ class TestViewsetMixin(TestMixin):
             ('method', method),
             ('data', data),
             ('status_code', response.status_code),
+            ('content_type', content_type),
             ('content', content)
         ))
 
