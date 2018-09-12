@@ -38,10 +38,14 @@ class TestMixinMeta(type):
 
         for test in tests:
             for username, password in users:
-                attrs['test_%s_for_%s' % (test[6:], username)] = \
+                attrs[cls.get_function_name(test, username)] = \
                     cls.generate_test(test, username, password)
 
         return super(TestMixinMeta, cls).__new__(cls, name, bases, attrs)
+
+    @classmethod
+    def get_function_name(cls, test, username):
+        return 'test_%s_for_%s' % (test[6:], username)
 
     @classmethod
     def generate_test(cls, test, username, password):
@@ -50,9 +54,11 @@ class TestMixinMeta(type):
                 self.client.login(username=username, password=password)
 
             getattr(self, test)(username)
-
+        
+        fn.__test__ = 'declared by test_generator' # for nose/selector.py wantedMethod
+        fn.__name__ = cls.get_function_name(test, username)
+        
         return fn
-
 
 class TestMixin(with_metaclass(TestMixinMeta, object)):
 
