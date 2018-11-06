@@ -65,25 +65,18 @@ class TestSingleObjectMixin(TestMixin):
     def model_to_dict(self, instance):
         # the folowing is taken from the 1.9 version of django.forms.models.model_to_dict
         from django.db.models.fields.related import ManyToManyField
-        opts = instance._meta
+        meta = instance._meta
         data = {}
-        for field in chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
+
+        # get the fields from the model
+        fields = chain(meta.concrete_fields, meta.private_fields, meta.many_to_many)
+
+        for field in fields:
             if not getattr(field, 'editable', False):
                 continue
 
             if isinstance(field, ManyToManyField):
-                # If the object doesn't have a primary key yet, just use an empty
-                # list for its m2m fields. Calling f.value_from_object will raise
-                # an exception.
-                if instance.pk is None:
-                    data[field.name] = []
-                else:
-                    # MultipleChoiceWidget needs a list of pks, not object instances.
-                    qs = field.value_from_object(instance)
-                    if qs._result_cache is not None:
-                        data[field.name] = [item.pk for item in qs]
-                    else:
-                        data[field.name] = list(qs.values_list('pk', flat=True))
+                data[field.name] = [value.pk for value in field.value_from_object(instance)]
 
             elif field.__class__.__name__ == 'JSONField':
                 data[field.name] = getattr(instance, field.name)
@@ -97,19 +90,15 @@ class TestSingleObjectMixin(TestMixin):
         if instance is None:
             instance = self.instance
 
-        model_dict = self.model_to_dict(instance)
-
         model_data = {}
-        for key in model_dict:
-            model_value = model_dict[key]
-
-            if model_value is not None:
-                if isinstance(model_value, datetime):
-                    model_data[key] = model_value.isoformat()
-                elif isinstance(model_value, timedelta):
-                    model_data[key] = str(model_value)
+        for key, value in self.model_to_dict(instance).items():
+            if not key.startswith('_') and value is not None:
+                if isinstance(value, datetime):
+                    model_data[key] = value.isoformat()
+                elif isinstance(value, timedelta):
+                    model_data[key] = str(value)
                 else:
-                    model_data[key] = model_value
+                    model_data[key] = value
 
         return model_data
 
