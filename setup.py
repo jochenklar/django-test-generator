@@ -15,6 +15,7 @@ setup(
     license=metadata['license'],
     url='https://github.com/aipescience/django-test-generator',
     description=u'A set of mixins to automatically generate test for generic Django views and DRF Viewsets.',
+    long_description=open('README.md').read(),
     packages=find_packages(),
     install_requires=[
         'Django>=1.11'
